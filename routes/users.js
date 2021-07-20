@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator");
 const { user } = require("../prisma/db");
 
@@ -35,16 +36,12 @@ router.post(
         },
       });
 
-      console.log(aUser);
-
       if (aUser) {
         return res.status(400).json({ msg: "User already exists" });
       }
 
       // Gen Salt Security
       const salt = await bcrypt.genSalt(10);
-
-      console.log(salt);
       // Hash Password
       const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -56,9 +53,20 @@ router.post(
         },
       });
 
+      const payload = {
+        user: {
+          id: newUser.id,
+        },
+      };
+
+      const token = jwt.sign(payload, process.env.jwtSecret, {
+        expiresIn: "30d",
+      });
+
       res.status(200).json({
         success: true,
         data: newUser,
+        token,
       });
     } catch (err) {
       console.error(err.message);
