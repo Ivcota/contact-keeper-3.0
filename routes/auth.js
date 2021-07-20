@@ -4,12 +4,33 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator");
 const { user } = require("../prisma/db");
+const auth = require("../middleware/auth");
 
 // @route    GET api/auth
 // @desc     Get logged in user
 // @access   Private
-router.get("/", (req, res) => {
-  res.send("Get logged in user");
+router.get("/", auth, async (req, res) => {
+
+  try {
+    const aUser = await user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        data: true,
+      },
+    });
+
+    res.status(200).json({
+      aUser,
+    });
+
+    console.log("End Fetch");
+  } catch (err) {
+    console.error(err.message);
+    res.status(400).send("Server Error");
+  }
 });
 
 // @route    POST api/auth
