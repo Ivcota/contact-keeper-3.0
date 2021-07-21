@@ -60,15 +60,66 @@ router.post(
 // @route   PUT api/contacts/:id
 // @desc    Update specific contact
 // @access  Private
-router.put("/:id", (req, res) => {
-  res.send("Update specific contact");
+router.put("/:id", [auth], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.json({
+      mesg: errors.array(),
+    });
+  }
+
+  const { id } = req.params;
+  const parsedId = parseInt(id);
+
+  const { name, email, phone, type } = req.body;
+
+  try {
+    const editedContact = await contact.update({
+      data: {
+        name,
+        email,
+        phone,
+        type,
+      },
+      where: {
+        id: parsedId,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: editedContact,
+    });
+  } catch (error) {
+    console.error(error);
+    res.send(error);
+  }
 });
 
 // @route   DELETE api/contacts/:id
 // @desc    Get all user's contacts
 // @access  Private
-router.delete("/:id", (req, res) => {
-  res.send("Get all contacts");
+router.delete("/:id", auth, (req, res) => {
+  // Delete contact with matching id
+
+  const { id } = req.params;
+  const parsedId = parseInt(id);
+
+  try {
+    const deletedContact = contact.delete({
+      where: {
+        id: parsedId,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      msg: `Contact with with id ${id} has been deleted.`,
+    });
+  } catch (error) {
+    console.error(error);
+    res.send(error);
+  }
 });
 
 module.exports = router;
