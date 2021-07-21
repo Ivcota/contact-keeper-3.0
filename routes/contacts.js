@@ -1,11 +1,26 @@
 const express = require("express");
 const router = express.Router();
+const { contact } = require("../prisma/db");
+const auth = require("../middleware/auth");
 
 // @route   GET api/contacts
 // @desc    Get all user's contacts
 // @access  Private
-router.get("/", (req, res) => {
-  res.send("Get all contacts");
+router.get("/", auth, async (req, res) => {
+  try {
+    const contacts = await contact.findMany({
+      where: {
+        userId: req.user.id,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: contacts,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // @route   POST api/contacts

@@ -18,7 +18,7 @@ router.get("/", auth, async (req, res) => {
         id: true,
         name: true,
         email: true,
-        data: true,
+        date: true,
       },
     });
 
